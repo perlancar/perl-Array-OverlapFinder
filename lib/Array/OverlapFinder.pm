@@ -76,10 +76,10 @@ sub combine_overlap { _find_or_combine_overlap('combine', @_) }
 
 =head1 DESCRIPTION
 
-Assuming you have two ordered sequences of items that might or might overlap,
-where the first sequence contains "earlier" items and the second contains
-possibly "later" items, the functions in this module can find the overlapping
-items for you or remove them combining the two sequence into one:
+Assuming you have two ordered sequences of items that might or might not
+overlap, where the first sequence contains "earlier" items and the second
+contains possibly "later" items, the functions in this module can find the
+overlapping items for you or remove them combining the two sequence into one:
 
  # condition A, no overlaps
  sequence1: 1 2 3 4 5 6
@@ -95,29 +95,35 @@ items for you or remove them combining the two sequence into one:
 
  # condition C, overlaps
  sequence1: 1 2 3 4 5 6
- sequence2:       4 5 6
- overlap  : 4 5 6
+ sequence2:       4 5
+ overlap  : 4 5
  combined : 1 2 3 4 5 6
 
  # condition D, overlaps
+ sequence1: 1 2 3 4 5 6
+ sequence2:       4 5 6
+ overlap  :       4 5 6
+ combined : 1 2 3 4 5 6
+
+ # condition E, overlaps (identical)
  sequence1: 1 2 3 4 5 6
  sequence2: 1 2 3 4 5 6
  overlap  : 1 2 3 4 5 6
  combined : 1 2 3 4 5 6
 
- # condition E, overlaps
+ # condition F, overlaps
  sequence1: 1 2 3 4 5 6
  sequence2: 1 2 3 4 5 6 7 8
  overlap  : 1 2 3 4 5 6
  combined : 1 2 3 4 5 6 7 8
 
- # condition F1, overlaps in the middle of second sequence will be assumed as non-overlapping
+ # condition G1, overlaps in the middle of second sequence will be assumed as non-overlapping
  sequence1: 1 2 3 4 5 6
- sequence2: 2 3 4 x x 5 6
+ sequence2:   2 3 4 x x 5 6
  overlap  :
  combined : 1 2 3 4 5 6 2 3 4 x x 5 6
 
- # condition F1, multiple overlaps will be assumed as non-overlapping
+ # condition G2, multiple overlaps will be assumed as non-overlapping
  sequence1: 1 2 3 4 5 6
  sequence2: 2 3 4 x x 5 6 y y
  overlap  :
