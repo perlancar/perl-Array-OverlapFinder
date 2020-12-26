@@ -13,37 +13,67 @@ use Exporter qw(import);
 our @EXPORT_OK = qw(find_overlap combine_overlap);
 
 sub _find_or_combine_overlap {
-    my ($action, $seq1, $seq2, $detail) = @_;
+    my $action = shift;
+    my $opts = ref($_[0]) eq 'HASH' ? shift : {};
+    my $detail = $opts->{detail};
+    @_ >= 2 or die "Please supply at least two sequences";
 
-    my @overlap_items;
-    my $index_at_seq1;
+    my @detail_res;
+    my @all_overlap_items;
 
-  L1:
-    for my $i (0 .. $#{$seq1}) {
-        my $j = $i;
-        while ($j <= $#{$seq1} && ($j-$i) <= $#{$seq2}) {
-            if ($seq1->[$j] ne $seq2->[$j - $i]) {
-                next L1;
+    my $seq1 = shift;
+    my $num_seqs = 1;
+  SEQ:
+    while (@_) {
+        my $seq2 = shift;
+        $num_seqs++;
+
+        my @overlap_items;
+        my $index_at_seq1;
+
+      L1:
+        for my $i (0 .. $#{$seq1}) {
+            my $j = $i;
+            while ($j <= $#{$seq1} && ($j-$i) <= $#{$seq2}) {
+                if ($seq1->[$j] ne $seq2->[$j - $i]) {
+                    next L1;
+                }
+                $j++;
             }
-            $j++;
-        }
-        @overlap_items = @{$seq1}[$i .. $#{$seq1}];
-        $index_at_seq1 = $i;
+            @overlap_items = @{$seq1}[$i .. $#{$seq1}];
+            $index_at_seq1 = $i;
         last L1;
-    }
+        }
 
-    if ($action eq 'find') {
-        # find
-        if ($detail) { return (\@overlap_items, $index_at_seq1) } else { return @overlap_items }
-    } else {
-        # combine
         my @combined;
         if (defined $index_at_seq1) {
             @combined = (@$seq1, @{$seq2}[ ($#{$seq1} - $index_at_seq1 + 1) .. $#{$seq2} ]);
         } else {
             @combined = (@$seq1, @$seq2);
         }
-        if ($detail) { return (\@combined, \@overlap_items, $index_at_seq1) } else { return @combined }
+        $seq1 = \@combined;
+
+        push @detail_res, \@overlap_items, $index_at_seq1;
+        push @all_overlap_items, \@overlap_items;
+    } # SEQ
+
+    if ($action eq 'find') {
+        if ($detail) {
+            return @detail_res;
+        } else {
+            if ($num_seqs > 2) {
+                return @all_overlap_items;
+            } else {
+                return @{ $all_overlap_items[0] };
+            }
+        }
+    } else {
+        # combine
+        if ($detail) {
+            return ($seq1, @detail_res);
+        } else {
+            return @$seq1;
+        }
     }
 }
 
@@ -52,7 +82,7 @@ sub find_overlap    { _find_or_combine_overlap('find', @_) }
 sub combine_overlap { _find_or_combine_overlap('combine', @_) }
 
 1;
-# ABSTRACT: Find/remove overlapping items between two ordered sequences
+# ABSTRACT: Find/remove overlapping items among ordered sequences
 
 =head1 SYNOPSIS
 
@@ -66,12 +96,17 @@ sub combine_overlap { _find_or_combine_overlap('combine', @_) }
  # for example)
  my @seq1 = qw(1 2 3 4 5 6);
  my @seq2 = qw(4 5 6 7 8 9);
+ my @seq3 = qw(8 9 10 11);
 
- my @overlap_items                   = find_overlap(\@seq1, \@seq2);              # => (4, 5, 6)
- my ($overlap_items, $index_at_seq1) = find_overlap(\@seq1, \@seq2, 'detail');    # => ([4, 5, 6], 3)
+ my @overlap_items                   = find_overlap(\@seq1, \@seq2);                           # => (4,5,6)
+ my @all_overlap_items               = find_overlap(\@seq1, \@seq2, \@seq3);                   # => ([4,5,6], [8,9])
+ my ($overlap_items_12, $index2_at_seq1, $overlap_items_13, $index3_at_seq1b) =
+                                       find_overlap({detail=>1}, \@seq1, \@seq2, \@seq3);      # => ([4,5,6], 3, [8,9], 7)
 
- my @combined_seq                                   = combine_overlap(\@seq1, \@seq2);           # => (1, 2, 3, 4, 5, 6, 7, 8, 9)
- my ($combined_seq, $overlap_items, $index_at_seq1) = combine_overlap(\@seq1, \@seq2, 'detail'); # => ([1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 6], 3)
+ my @combined_seq = combine_overlap(\@seq1, \@seq2, \@seq3);                                   # => (1,2,3,4,5,6,7,8,9,10,11)
+ my ($combined_seq, $overlap_items_12, $index2_at_seq1, $overlap_items_13, $index3_at_seq1b) =
+                    combine_overlap({detail=>1}, \@seq1, \@seq2, \@seq3);
+                                                                                               # => ([1,2,3,4,5,6,7,8,9,10,11], [4,5,6], 3, [8,9], 7)
 
 
 =head1 DESCRIPTION
@@ -129,6 +164,9 @@ overlapping items for you or remove them combining the two sequence into one:
  overlap  :
  combined : 1 2 3 4 5 6 2 3 4 x x 5 6 y y
 
+The functions accept three or more sequences to find/remove overlapping items
+in.
+
 
 =head1 FUNCTIONS
 
@@ -138,13 +176,13 @@ All functions are not exported by default, but exportable.
 
 Usage:
 
- find_overlap(\@seq1, \@seq2 [ , $detail ])
+ find_overlap([ \%opts , ] \@seq1, \@seq2, ...)
 
 =head2 combine_overlap
 
 Usage:
 
- combine_overlap(\@seq1, \@seq2 [ , $detail ])
+ combine_overlap([ \%opts , ] \@seq1, \@seq2, ...)
 
 
 =head1 SEE ALSO
