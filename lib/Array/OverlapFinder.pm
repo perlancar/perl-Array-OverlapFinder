@@ -164,8 +164,11 @@ overlapping items for you or remove them combining the two sequence into one:
  overlap  :
  combined : 1 2 3 4 5 6 2 3 4 x x 5 6 y y
 
-The functions accept three or more sequences to find/remove overlapping items
-in.
+The functions can accept more than two sequences to find/remove overlapping
+items in.
+
+Use-cases: forming a non-overlapping sequence of items from repeated downloads
+of RSS feed or "recent" page.
 
 
 =head1 FUNCTIONS
