@@ -190,6 +190,9 @@ Usage:
 
 =head1 SEE ALSO
 
+L<nauniq> from L<App::nauniq> can also sometimes be used, if you know the items
+in the sequence are unique.
+
 L<Algorithm::Diff>
 
 L<Text::OverlapFinder> has a similar name, but the two modules are not that
