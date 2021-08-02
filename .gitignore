@@ -2,3 +2,4 @@ Array-OverlapFinder-*
 .build
 *~
 nytprof*
+.DS_Store
