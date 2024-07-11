@@ -1,15 +1,16 @@
 package Array::OverlapFinder;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 
 use Exporter qw(import);
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
 our @EXPORT_OK = qw(find_overlap combine_overlap);
 
 sub _find_or_combine_overlap {
